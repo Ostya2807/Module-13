@@ -3,6 +3,7 @@
 <suite name="Regression Suite" parallel="classes" thread-count="2">
     <listeners>
         <listener class-name="com.epam.reportportal.testng.ReportPortalTestNGListener"/>
+        <listener class-name="com.epam.utils.TestListener"/>
     </listeners>
     <test name="Regression Tests">
         <packages>

@@ -1,6 +1,7 @@
 package com.epam.utils;
 
 import com.epam.driver.DriverManager;
+import com.epam.reportportal.service.ReportPortal;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.ThreadContext;
 import org.openqa.selenium.OutputType;
@@ -12,8 +13,11 @@ import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class TestListener implements ITestListener {
 
@@ -50,8 +54,17 @@ public class TestListener implements ITestListener {
                 .getDriver())
                 .getScreenshotAs(OutputType.FILE);
         try {
-            FileUtils.copyFile(screenCapture, new File(".//target/screenshots/"
+            FileUtils.copyFile(screenCapture, new File("./src/test/resources/screenshots/"
                     + getCurrentTimeAsString()+ result.getMethod().getMethodName() + ".png"));
+
+            ReportPortal.emitLog(
+                    "Screenshot on failure",
+                    "ERROR",
+                    new Date(),
+                    screenCapture
+            );
+
+
         } catch (IOException e) {
             log.error("Failed to save screenshot:" + e.getLocalizedMessage());
         }
