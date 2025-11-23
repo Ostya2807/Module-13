@@ -13,6 +13,8 @@ target/
 *.iml
 *.ipr
 /src/test/resources/reportportal.properties
+/allure-results
+/src/test/resources/screenshots
 
 ### Eclipse ###
 .apt_generated

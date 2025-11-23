@@ -21,7 +21,6 @@
         <Root level="all">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFileLog"/>
-            <AppenderRef ref="ReportPortalAppender"/>
         </Root>
     </Loggers>
 </Configuration>
