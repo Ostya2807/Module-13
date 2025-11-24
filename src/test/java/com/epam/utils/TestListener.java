@@ -6,6 +6,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.ThreadContext;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
+import org.testng.IInvokedMethod;
+import org.testng.IInvokedMethodListener;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 import org.apache.logging.log4j.Logger;
@@ -18,7 +20,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 
-public class TestListener implements ITestListener {
+public class TestListener implements ITestListener, IInvokedMethodListener {
 
     private Logger log = LogManager.getRootLogger();
 
@@ -63,6 +65,25 @@ public class TestListener implements ITestListener {
                     "png");
         } catch (IOException e) {
             log.error("Failed to save screenshot:" + e.getLocalizedMessage());
+        }
+    }
+    @Override
+    public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
+
+        log.warn("afterInvoke");
+        if (testResult.getStatus() == ITestResult.FAILURE) {
+            File screenCapture = ((TakesScreenshot) DriverManager
+                    .getDriver())
+                    .getScreenshotAs(OutputType.FILE);
+
+            ReportPortal.emitLog(
+                    "Screenshot on failure",
+                    "ERROR",
+                    new Date(),
+                    screenCapture
+            );
+            log.warn("Screenshot made by Invoke!");
+
         }
     }
 
