@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,26 +45,33 @@ public class TestListener implements ITestListener {
     @Override
     public void onTestFailure(ITestResult result) {
         log.error("===== TEST FAILED: {} =====", result.getMethod().getMethodName(), result.getTestClass().getRealClass().getSimpleName());
-        saveScreenshot(result);
+        String savedFile = saveScreenshot(result);
+        File screenshot = new File(savedFile);
+        try {
+            Allure.addAttachment("Screenshot on failure",
+                    "image/png",
+                    new FileInputStream(screenshot),
+                    "png");
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         ThreadContext.clearAll();
     }
 
-    private void saveScreenshot(ITestResult result){
+    private String saveScreenshot(ITestResult result){
         File screenCapture = ((TakesScreenshot) DriverManager
                 .getDriver())
                 .getScreenshotAs(OutputType.FILE);
+        String fileName = "./src/test/resources/screenshots/"
+                + getCurrentTimeAsString()+ result.getMethod().getMethodName() + ".png";
         try {
-            String fileName = "./src/test/resources/screenshots/"
-                    + getCurrentTimeAsString()+ result.getMethod().getMethodName() + ".png";
             FileUtils.copyFile(screenCapture, new File(fileName));
 
-            Allure.addAttachment("Screenshot on failure",
-                    "image/png",
-                    new FileInputStream(screenCapture),
-                    "png");
+
         } catch (IOException e) {
             log.error("Failed to save screenshot:" + e.getLocalizedMessage());
         }
+        return fileName;
     }
 
     private String getCurrentTimeAsString() {
