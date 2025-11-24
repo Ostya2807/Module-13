@@ -1,7 +1,7 @@
 package com.epam.utils;
 
 import com.epam.driver.DriverManager;
-import com.epam.reportportal.service.ReportPortal;
+import io.qameta.allure.Allure;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.ThreadContext;
 import org.openqa.selenium.OutputType;
@@ -14,10 +14,11 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+
 
 public class TestListener implements ITestListener, IInvokedMethodListener {
 
@@ -37,15 +38,15 @@ public class TestListener implements ITestListener, IInvokedMethodListener {
     }
 
     @Override
-    public void onTestFailure(ITestResult result) {
-        log.error("===== TEST FAILED: {} =====", result.getMethod().getMethodName(), result.getTestClass().getRealClass().getSimpleName());
-        saveScreenshot(result);
+    public void onTestSkipped(ITestResult result) {
+        log.warn("===== TEST SKIPPED: {} =====", result.getMethod().getMethodName());
         ThreadContext.clearAll();
     }
 
     @Override
-    public void onTestSkipped(ITestResult result) {
-        log.warn("===== TEST SKIPPED: {} =====", result.getMethod().getMethodName());
+    public void onTestFailure(ITestResult result) {
+        log.error("===== TEST FAILED: {} =====", result.getMethod().getMethodName(), result.getTestClass().getRealClass().getSimpleName());
+        saveScreenshot(result);
         ThreadContext.clearAll();
     }
 
@@ -54,17 +55,14 @@ public class TestListener implements ITestListener, IInvokedMethodListener {
                 .getDriver())
                 .getScreenshotAs(OutputType.FILE);
         try {
-            FileUtils.copyFile(screenCapture, new File("./src/test/resources/screenshots/"
-                    + getCurrentTimeAsString()+ result.getMethod().getMethodName() + ".png"));
+            String fileName = "./src/test/resources/screenshots/"
+                    + getCurrentTimeAsString()+ result.getMethod().getMethodName() + ".png";
+            FileUtils.copyFile(screenCapture, new File(fileName));
 
-            ReportPortal.emitLog(
-                    "Screenshot on failure",
-                    "ERROR",
-                    new Date(),
-                    screenCapture
-            );
-
-
+            Allure.addAttachment("Screenshot on failure",
+                    "image/png",
+                    new FileInputStream(screenCapture),
+                    "png");
         } catch (IOException e) {
             log.error("Failed to save screenshot:" + e.getLocalizedMessage());
         }
