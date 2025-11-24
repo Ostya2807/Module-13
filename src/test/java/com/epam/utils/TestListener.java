@@ -1,7 +1,7 @@
 package com.epam.utils;
 
 import com.epam.driver.DriverManager;
-import io.qameta.allure.Allure;
+import com.epam.reportportal.service.ReportPortal;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.ThreadContext;
 import org.openqa.selenium.OutputType;
@@ -14,11 +14,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 
 public class TestListener implements ITestListener, IInvokedMethodListener {
@@ -47,20 +46,11 @@ public class TestListener implements ITestListener, IInvokedMethodListener {
     @Override
     public void onTestFailure(ITestResult result) {
         log.error("===== TEST FAILED: {} =====", result.getMethod().getMethodName(), result.getTestClass().getRealClass().getSimpleName());
-        String savedFile = saveScreenshot(result);
-        File screenshot = new File(savedFile);
-        try {
-            Allure.addAttachment("Screenshot on failure",
-                    "image/png",
-                    new FileInputStream(screenshot),
-                    "png");
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        saveScreenshot(result);
         ThreadContext.clearAll();
     }
 
-    private String saveScreenshot(ITestResult result){
+    private void saveScreenshot(ITestResult result){
         File screenCapture = ((TakesScreenshot) DriverManager
                 .getDriver())
                 .getScreenshotAs(OutputType.FILE);
@@ -73,7 +63,6 @@ public class TestListener implements ITestListener, IInvokedMethodListener {
         } catch (IOException e) {
             log.error("Failed to save screenshot:" + e.getLocalizedMessage());
         }
-        return fileName;
     }
     @Override
     public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
